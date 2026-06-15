@@ -4,7 +4,7 @@ import type { IUser } from "./user.interface";
 
 const createUserIntoDB = async (payload: IUser) => {
   const { name, email, password, role } = payload;
-  const hashPassword =  await bcrypt.hash(password, 10);
+  const hashPassword = await bcrypt.hash(password, 10);
   const result = await pool.query(
     `
         INSERT INTO users (NAME,EMAIL,PASSWORD,ROLE) VALUES($1,$2,$3,$4)
@@ -12,6 +12,8 @@ const createUserIntoDB = async (payload: IUser) => {
         `,
     [name, email, hashPassword, role],
   );
+
+  delete result.rows[0].password;
 
   return result.rows[0];
 };
@@ -22,17 +24,14 @@ const getAllUserFromDB = async () => {
     `,
   );
   return result.rows;
-
 };
 
-
-const userLoginIntoDB = async(payload)=>{
-  const {email,age,role,password} = payload
-
-}
+const userLoginIntoDB = async (payload) => {
+  const { email, age, role, password } = payload;
+};
 
 export const userService = {
   createUserIntoDB,
   getAllUserFromDB,
-  userLoginIntoDB
+  userLoginIntoDB,
 };
