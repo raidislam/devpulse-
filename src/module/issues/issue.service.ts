@@ -1,17 +1,32 @@
 import { issueController } from "./issue.controller";
 import { pool } from "../../db/db";
 
-const createconstService = async (payload: any) => {
-  const { title, description, reporter_id, type, status } = payload;
+const createIssueIntoDB = async (
+  payload: {
+    title: string;
+    description: string;
+    type: "bug" | "feature_request";
+  },
+  user: {
+    id: number;
+    name: string;
+    role: "contributor" | "maintainer";
+  },
+) => {
+  const { title, description, type } = payload;
+
+
 
   const result = await pool.query(
     `
-        INSERT INTO issues (TITLE,DESCRIPTION,REPORTER_ID,TYPE) VALUES($1,$2,$3,$4)
-        RETURNING *
-        `,
-    [title, description, reporter_id, type],
+    INSERT INTO issues (title, description, type, reporter_id)
+    VALUES ($1, $2, $3, $4)
+    RETURNING *
+    `,
+    [title, description, type, user.id],
   );
-  return result;
+
+  return result.rows[0];
 };
 
 const getAllIssuesFromDB = async () => {
@@ -63,7 +78,7 @@ const deleteIssueFromDB = async (id: number) => {
 }
 
 export const issueService = {
-  createconstService,
+  createIssueIntoDB,
   getAllIssuesFromDB,
   getSingleUserFromDB,
   issueUpdateServiceFromDB,

@@ -4,7 +4,7 @@ import { issueService } from "./issue.service";
 const issueCreate = async (req: Request, res: Response) => {
   const body = req.body;
   try {
-    const result = await issueService.createconstService(body);
+    const result = await issueService.createIssueIntoDB(body,req.user);
     res.status(201).json({
       success: true,
       message: "Issue create successfully",
@@ -13,7 +13,7 @@ const issueCreate = async (req: Request, res: Response) => {
   } catch (err) {
     res.status(401).json({
       success: false,
-      message: "Post can not create",
+      message: "Issue creation failed",
       data: null,
     });
   }
@@ -22,6 +22,7 @@ const issueCreate = async (req: Request, res: Response) => {
 // Sorting
 
 const getAllIssues = async (req: Request, res: Response) => {
+  
   try {
     const result = await issueService.getAllIssuesFromDB();
     res.status(200).json({
