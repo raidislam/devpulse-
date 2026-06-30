@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { pool } from "../../db/db";
 import type { IUser } from "../user/user.interface";
-import jwt from "jsonwebtoken";
+import jwt, { type JwtPayload } from "jsonwebtoken";
 import { config } from "../../config/config";
 
 const createUserIntoDB = async (payload: IUser) => {
@@ -22,8 +22,8 @@ const createUserIntoDB = async (payload: IUser) => {
 
   const result = await pool.query(
     `
-    INSERT INTO users (name, email, password, role)
-    VALUES ($1, $2, $3, $4)
+    INSERT INTO users (name, email, password, role) 
+    VALUES ($1, $2, $3, COALESCE($4, 'contributor'))
     RETURNING *
     `,
     [name, email, hashPassword, role],
@@ -61,10 +61,16 @@ const loginUserIntoDB = async (payload: {
     id: user.id,
     name: user.name,
     role: user.role,
-    email:user.email
+    email: user.email,
   };
 
+  // Access Token
   const token = jwt.sign(jwtPayload, config.jwtSecret as string, {
+    expiresIn: "10d",
+  });
+
+  // Refresh Token
+  const refreshToken = jwt.sign(jwtPayload, config.jwtRefresh as string, {
     expiresIn: "1d",
   });
 
@@ -72,10 +78,48 @@ const loginUserIntoDB = async (payload: {
 
   return {
     token,
+    refreshToken,
     user,
   };
 };
+
+const refreshTokenGenerateDB = async (token: string) => {
+  if (!token) {
+    throw new Error("Unauthorized Access");
+  }
+
+  const decoded = jwt.verify(
+    token as string,
+    config.jwtRefresh as string,
+  ) as JwtPayload;
+  const userData = await pool.query(
+    `
+      SELECT * FROM users WHERE email = $1
+      `,
+    [decoded?.email],
+  );
+  const user = userData.rows[0];
+  if (userData.rows.length === 0) {
+    throw new Error("User Not Exist");
+  }
+
+  const jwtPayload = {
+    id: user.id,
+    name: user.name,
+    role: user.role,
+    email: user.email,
+  };
+
+  // Access Token
+  const accessToken = jwt.sign(jwtPayload, config.jwtSecret as string, {
+    expiresIn: "1d",
+  });
+
+  return {accessToken}
+};
+
 export const authService = {
   createUserIntoDB,
   loginUserIntoDB,
+  refreshTokenGenerateDB,
 };

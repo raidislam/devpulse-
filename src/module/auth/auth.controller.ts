@@ -5,6 +5,12 @@ const loginUser = async (req: Request, res: Response) => {
   const body = req.body;
   try {
     const result = await authService.loginUserIntoDB(body);
+    const { refreshToken } = result;
+    res.cookie("refreshToken", refreshToken, {
+      secure: false, //in production true
+      httpOnly: true,
+      sameSite: "lax",
+    });
     res.status(200).json({
       message: "Login successful",
       success: true,
@@ -18,7 +24,6 @@ const loginUser = async (req: Request, res: Response) => {
     });
   }
 };
-
 
 const signupUser = async (req: Request, res: Response) => {
   const body = req.body;
@@ -40,5 +45,22 @@ const signupUser = async (req: Request, res: Response) => {
   }
 };
 
+const refreshTokenController = async (req: Request, res: Response) => {
+  try {
+    const result = await authService.refreshTokenGenerateDB(req.cookies.refreshToken);
+   
+    res.status(200).json({
+      message: "Access token successful",
+      success: true,
+      data: result,
+    });
+  } catch (err) {
+    res.status(404).json({
+      message: "Login Failed",
+      success: false,
+      data: null,
+    });
+  }
+};
 
-export const authController = { loginUser,signupUser };
+export const authController = { loginUser, signupUser, refreshTokenController };

@@ -2,8 +2,11 @@ import jwt, { type JwtPayload } from "jsonwebtoken";
 import type { NextFunction, Request, Response } from "express";
 import { config } from "../config/config";
 import { pool } from "../db/db";
+import type { ROLES } from "../types";
 
-const auth = () => {
+
+
+const auth = (...roles: ROLES[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       // console.log(req.headers);
@@ -25,13 +28,21 @@ const auth = () => {
       `,
         [decoded?.email],
       );
-      // const user =  userData.rows[0]
+      const user = userData.rows[0];
       if (userData.rows.length === 0) {
         res.status(401).json({
           success: false,
           message: "User Not Exist",
         });
       }
+
+      if (roles.length && !roles.includes(user.role)) {
+        res.status(401).json({
+          success: false,
+          message: "Unauthorized Access",
+        });
+      }
+
       req.user = decoded;
       next();
     } catch (err) {
