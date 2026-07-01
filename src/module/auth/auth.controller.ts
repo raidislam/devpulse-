@@ -6,7 +6,7 @@ const loginUser = async (req: Request, res: Response) => {
   try {
     const result = await authService.loginUserIntoDB(body);
     const { refreshToken } = result;
-    res.cookie("refreshToken", refreshToken, {
+    res.cookie("refreshToken", refreshToken, { 
       secure: false, //in production true
       httpOnly: true,
       sameSite: "lax",

@@ -14,7 +14,7 @@ const createIssueIntoDB = async (
   },
 ) => {
   const { title, description, type } = payload;
-
+  const reporterId = user.id;
 
 
   const result = await pool.query(
@@ -23,7 +23,7 @@ const createIssueIntoDB = async (
     VALUES ($1, $2, $3, $4)
     RETURNING *
     `,
-    [title, description, type, user.id],
+    [title, description, type, reporterId],
   );
 
   return result.rows[0];

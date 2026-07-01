@@ -3,8 +3,19 @@ import { issueService } from "./issue.service";
 
 const issueCreate = async (req: Request, res: Response) => {
   const body = req.body;
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized",
+      data: null,
+    });
+  }
+
   try {
-    const result = await issueService.createIssueIntoDB(body,req.user);
+    const result = await issueService.createIssueIntoDB(
+      body,
+      req.user as { id: number; name: string; role: "contributor" | "maintainer" },
+    );
     res.status(201).json({
       success: true,
       message: "Issue create successfully",
