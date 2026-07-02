@@ -29,7 +29,11 @@ const createIssueIntoDB = async (
   return result.rows[0];
 };
 
-const getAllIssuesFromDB = async () => {
+const getAllIssuesFromDB = async ( user: {
+    id: number;
+    name: string;
+    role: "contributor" | "maintainer";
+  },) => {
   const result = await pool.query(
     `
         SELECT * FROM issues
