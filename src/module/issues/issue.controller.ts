@@ -19,10 +19,11 @@ const issueCreate = async (req: Request, res: Response) => {
     res.status(201).json({
       success: true,
       message: "Issue create successfully",
-      data: result.rows[0],
+      data: result,
     });
   } catch (err) {
-    res.status(401).json({
+    console.log(err);
+    res.status(500).json({
       success: false,
       message: "Issue creation failed",
       data: null,
@@ -37,8 +38,8 @@ const getAllIssues = async (req: Request, res: Response) => {
   try {
     const result = await issueService.getAllIssuesFromDB();
     res.status(200).json({
-      message: "Get All Issues Successful",
       success: true,
+      message: "Issues retrived successfully",
       data: result,
     });
   } catch (err) {
